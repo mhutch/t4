@@ -99,14 +99,12 @@ namespace Mono.TextTemplating.Build
 			if (PreprocessTemplates != null) {
 				buildState.PreprocessTemplates = new List<TemplateBuildState.PreprocessedTemplate> ();
 				foreach (var ppt in PreprocessTemplates) {
-					string inputFile = ppt.ItemSpec;
+					string inputFile;
 					string outputFile;
 					if (UseLegacyPreprocessingMode) {
-						//TODO: OutputFilePath, OutputFileName
-						outputFile = Path.ChangeExtension (inputFile, ".cs");
+						(inputFile, outputFile) = GetLegacyPreprocessInputOutputNames (ppt);
 					} else {
-						//FIXME: this could cause collisions. generate a path based on relative path and link metadata
-						outputFile = Path.Combine (IntermediateDirectory, Path.ChangeExtension (inputFile, ".cs"));
+						(inputFile, outputFile) = GetPreprocessInputOutputNames (IntermediateDirectory, ppt);
 					}
 					buildState.PreprocessTemplates.Add (new TemplateBuildState.PreprocessedTemplate {
 						InputFile = inputFile,
@@ -118,14 +116,12 @@ namespace Mono.TextTemplating.Build
 			if (TransformTemplates != null) {
 				buildState.TransformTemplates = new List<TemplateBuildState.TransformTemplate> ();
 				foreach (var tt in TransformTemplates) {
-					//TODO: OutputFilePath, OutputFileName
-					//var outputFilePathMetadata = tt.TryGetMetadata("OutputFilePath");
-					//var outputFileNameMetadata = tt.TryGetMetadata("OutputFileName");
-					string inputFile = tt.ItemSpec;
-					string outputFile = Path.ChangeExtension (inputFile, ".txt");
+					tt.TryGetMetadata (OutputFileNameMetadata, out string outputFileNameMetadata);
+					tt.TryGetMetadata (OutputFilePathMetadata, out string outputFilePathMetadata);
 					buildState.TransformTemplates.Add (new TemplateBuildState.TransformTemplate {
 						InputFile = inputFile,
-						OutputFile = outputFile
+						OutputFilePathMetadata = outputFilePathMetadata,
+						OutputFileNameMetadata = outputFileNameMetadata
 					});
 				}
 			}
@@ -159,6 +155,49 @@ namespace Mono.TextTemplating.Build
 			//var stateJson = MessagePackSerializer.ConvertToJson (File.ReadAllBytes (buildStateFilename), msgPackOptions);
 
 			return success;
+		}
+
+		const string OutputFileNameMetadata = "OutputFileName";
+		const string OutputFilePathMetadata = "OutputFilePath";
+
+		static (string inputFile, string outputFile) GetLegacyPreprocessInputOutputNames (ITaskItem item)
+		{
+			string inputFile = item.ItemSpec;
+			item.TryGetMetadata (OutputFileNameMetadata, out string outputFile);
+			if (string.IsNullOrEmpty (outputFile)) {
+				outputFile = Path.ChangeExtension (inputFile, ".cs");
+			}
+			if (item.TryGetMetadata (OutputFilePathMetadata, out string outputFilePath)) {
+				outputFile = Path.Combine (outputFilePath, outputFile);
+			}
+			return (inputFile, outputFile);
+		}
+
+		static (string inputFile, string outputFile) GetPreprocessInputOutputNames (string IntermediateDirectory, ITaskItem item)
+		{
+			string inputFile = item.ItemSpec;
+			string baseOutputFile;
+			if (item.TryGetMetadata ("Link", out string link)) {
+				baseOutputFile = link;
+			} else {
+				baseOutputFile = Path.ChangeExtension (inputFile, ".cs")
+			}
+			//FIXME: this could cause collisions. generate a path based on relative path and link metadata
+			string outputFile = Path.Combine (IntermediateDirectory, Path.ChangeExtension (inputFile, ".cs"));
+			return (inputFile, outputFile);
+		}
+
+		static (string inputFile, string outputFile) GetTransformInputOutputNames (ITaskItem item)
+		{
+			string inputFile = item.ItemSpec;
+			item.TryGetMetadata (OutputFileNameMetadata, out string outputFile);
+			if (string.IsNullOrEmpty (outputFile)) {
+				outputFile = Path.ChangeExtension (inputFile, ".txt");
+			}
+			if (item.TryGetMetadata (OutputFilePathMetadata, out string outputFilePath)) {
+				outputFile = Path.Combine (outputFilePath, outputFile);
+			}
+			return (inputFile, outputFile);
 		}
 
 		static TaskItem ConstructOutputItem (string outputFile, string inputFile, List<string> itemDependencies)
