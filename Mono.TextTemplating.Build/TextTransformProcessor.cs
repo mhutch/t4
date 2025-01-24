@@ -181,6 +181,7 @@ namespace Mono.TextTemplating.Build
 		static void WriteOutput (MSBuildTemplateGenerator generator, string outputFile, string outputContent, Encoding encoding)
 		{
 			try {
+				Directory.CreateDirectory(outputFile);
 				File.WriteAllText (outputFile, outputContent, encoding ?? new UTF8Encoding (encoderShouldEmitUTF8Identifier: false));
 			}
 			catch (IOException ex) {

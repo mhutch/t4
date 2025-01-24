@@ -101,6 +101,8 @@ namespace Mono.TextTemplating
 			// gives it an opportunity to resolve runtime assemblies.
 			var path = host.ResolveAssemblyReference (assemblyName.Name + ".dll");
 			if (File.Exists (path)) {
+				// LoadFromAssemblyPath requires an absolute path
+				path = Path.GetFullPath (path);
 				return LoadFromAssemblyPath (path);
 			}
 
