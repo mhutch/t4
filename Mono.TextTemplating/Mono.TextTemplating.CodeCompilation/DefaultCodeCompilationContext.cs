@@ -7,6 +7,5 @@ namespace Mono.TextTemplating.CodeCompilation
     {
         public string CompilerSearchPath { get; } = Path.GetDirectoryName (typeof (object).Assembly.Location);
 
-        public string NetCoreRoot { get; } = Environment.GetEnvironmentVariable ("DOTNET_ROOT");
     }
 }

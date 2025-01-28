@@ -6,10 +6,5 @@ namespace Mono.TextTemplating.CodeCompilation
         /// The directory to search for the compiler in.
         /// </summary>
         string CompilerSearchPath { get; }
-
-        /// <summary>
-        /// The root directory of the .NET Core installation.
-        /// </summary>
-        string NetCoreRoot { get; }
     }
 }

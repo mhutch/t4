@@ -43,11 +43,6 @@ namespace Mono.TextTemplating.Build
 		/// </summary>
 		public string RoslynTargetsPath { get; set; }
 
-		/// <summary>
-		/// The root directory of the .NET Core installation.
-		/// </summary>
-		public string NetCoreRoot { get; set; }
-
 		[Required]
 		public string IntermediateDirectory { get; set; }
 
@@ -141,7 +136,7 @@ namespace Mono.TextTemplating.Build
 				}
 			}
 
-			ICodeCompilationContext context = RoslynTargetsPath != null ? new BuildSpecificCodeCompilationContext(RoslynTargetsPath, NetCoreRoot) : new DefaultCodeCompilationContext ();
+			ICodeCompilationContext context = RoslynTargetsPath != null ? new BuildSpecificCodeCompilationContext(RoslynTargetsPath) : new DefaultCodeCompilationContext ();
 
 			TextTransformProcessor.Process (Log, previousBuildState, buildState, PreprocessOnly, context);
 

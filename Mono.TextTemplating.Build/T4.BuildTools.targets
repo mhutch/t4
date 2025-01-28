@@ -85,7 +85,6 @@
       ParameterValues="@(T4Argument)"
       ReferencePaths="@(T4ReferencePath)"
       RoslynTargetsPath="$(RoslynTargetsPath)"
-      NetCoreRoot="$(NetCoreRoot)"
       TransformTemplates="@(T4Transform)"
       PreprocessTemplates="@(T4Preprocess)"
       AssemblyReferences="@(T4AssemblyReference)"

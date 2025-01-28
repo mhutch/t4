@@ -6,15 +6,11 @@ namespace Mono.TextTemplating.Build
     {
         
         readonly string _compilerSearchPath;
-        readonly string _netCoreRoot;
-        public BuildSpecificCodeCompilationContext (string compilerSearchPath, string NetCoreRoot)
+        public BuildSpecificCodeCompilationContext (string compilerSearchPath)
         {
             _compilerSearchPath = compilerSearchPath;
-            _netCoreRoot = NetCoreRoot;
         }
 
         public string CompilerSearchPath => _compilerSearchPath;
-
-        public string NetCoreRoot => _netCoreRoot;
     }
 }

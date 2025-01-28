@@ -99,7 +99,7 @@ namespace Mono.TextTemplating.CodeCompilation
 			}
 			else
 			{
-				return GetDotNetCoreSdk (context);
+				return GetDotNetCoreSdk ();
 			}
 		}
 
@@ -177,15 +177,19 @@ namespace Mono.TextTemplating.CodeCompilation
 			}
 		}
 
-		static RuntimeInfo GetDotNetCoreSdk (ICodeCompilationContext context)
+		static RuntimeInfo GetDotNetCoreSdk ()
 		{
 			static bool DotnetRootIsValid (string root) => !string.IsNullOrEmpty (root) && (File.Exists (Path.Combine (root, "dotnet")) || File.Exists (Path.Combine (root, "dotnet.exe")));
 
-			var dotnetRoot = context.NetCoreRoot;
+			// the runtime dir is used when probing for DOTNET_ROOT
+			// and as a fallback in case we cannot locate reference assemblies
+			var runtimeDir = Path.GetDirectoryName (typeof (object).Assembly.Location);
+
+			var dotnetRoot = Environment.GetEnvironmentVariable ("DOTNET_ROOT");
 
 			if (!DotnetRootIsValid (dotnetRoot)) {
 				// this will work if runtimeDir is $DOTNET_ROOT/shared/Microsoft.NETCore.App/5.0.0
-				dotnetRoot = Path.GetDirectoryName (Path.GetDirectoryName (Path.GetDirectoryName (context.CompilerSearchPath)));
+				dotnetRoot = Path.GetDirectoryName (Path.GetDirectoryName (Path.GetDirectoryName (runtimeDir)));
 
 				if (!DotnetRootIsValid (dotnetRoot)) {
 					return FromError (RuntimeKind.NetCore, "Could not locate .NET root directory from running app. It can be set explicitly via the `DOTNET_ROOT` environment variable.");
@@ -198,7 +202,7 @@ namespace Mono.TextTemplating.CodeCompilation
 			if (hostVersion.Major == 4)
 			{
 				// this will work if runtimeDir is $DOTNET_ROOT/shared/Microsoft.NETCore.App/5.0.0
-				var versionPathComponent = Path.GetFileName (context.CompilerSearchPath);
+				var versionPathComponent = Path.GetFileName (runtimeDir);
 				if (SemVersion.TryParse (versionPathComponent, out var hostSemVersion)) {
 					hostVersion = new Version (hostSemVersion.Major, hostSemVersion.Minor, hostSemVersion.Patch);
 				}
@@ -225,7 +229,7 @@ namespace Mono.TextTemplating.CodeCompilation
 
 			return new RuntimeInfo (
 				RuntimeKind.NetCore,
-				runtimeDir: context.CompilerSearchPath,
+				runtimeDir: runtimeDir,
 				runtimeVersion: hostVersion,
 				refAssembliesDir: refAssembliesDir,
 				runtimeFacadesDir: null,
